@@ -62,25 +62,6 @@ def cf_variance(test_configuration_desc, Cinv, train_cfs_descriptors, c, lambdac
         v = 0.0
     return v
 
-"""
-@numba.autojit()
-def derivatives(configuration_centered_neighbours, descriptors):
-    assert configuration_centered_neighbours.shape[1] == 3
-    
-    neighbours = configuration_centered_neighbours.shape[0]
-    n_descriptors = len(descriptors)
-	
-    der = np.zeros( (n_descriptors, 3 ))
-
-    for descid in xrange(0, n_descriptors):
-        for xyz in configuration_centered_neighbours:
-            dist = norm3d(xyz)
-            d = descriptors[descid].derivative(dist)
-            for k in xrange(0, 3):
-                der[descid][k] += d * xyz[k] / dist 
-    return der
-"""
-
 @numba.jit(nopython=True)
 def Kernel(x, y, c):
     v =  np.exp( - c * inner_product(x - y, x - y))
@@ -94,6 +75,22 @@ def Kx_xi(predict_descriptor, train_descriptors, c):
     for i in xrange(0, n):
         r[i] = Kernel(predict_descriptor, train_descriptors[i], c)
     return r
+
+@numba.jit(nopython=True)
+def cf_potentiel(test_configuration_desc, alpha, train_cfs_descriptors, c):
+    kx = Kx_xi(test_configuration_desc, train_cfs_descriptors, c)
+    return inner_product(kx, alpha)
+
+@numba.jit(nopython=True)
+def Kmat(descriptors, c):
+    n = len(descriptors)
+    K = np.zeros( (n, n))
+
+    for i in xrange(0, n):
+        for j in xrange(0, n):
+            K[i][j] = Kernel(descriptors[i], descriptors[j], c)
+    return K
+
 
 """
 @numba.jit(nopython=True)
@@ -120,17 +117,21 @@ def cf_forces(cf_derivs, test_configuration_desc, alpha, train_cfs_descriptors, 
     return derivees
 """
 
-@numba.jit(nopython=True)
-def cf_potentiel(test_configuration_desc, alpha, train_cfs_descriptors, c):
-    kx = Kx_xi(test_configuration_desc, train_cfs_descriptors, c)
-    return inner_product(kx, alpha)
+"""
+@numba.autojit()
+def derivatives(configuration_centered_neighbours, descriptors):
+    assert configuration_centered_neighbours.shape[1] == 3
+    
+    neighbours = configuration_centered_neighbours.shape[0]
+    n_descriptors = len(descriptors)
+	
+    der = np.zeros( (n_descriptors, 3 ))
 
-@numba.jit(nopython=True)
-def Kmat(descriptors, c):
-    n = len(descriptors)
-    K = np.zeros( (n, n))
-
-    for i in xrange(0, n):
-        for j in xrange(0, n):
-            K[i][j] = Kernel(descriptors[i], descriptors[j], c)
-    return K
+    for descid in xrange(0, n_descriptors):
+        for xyz in configuration_centered_neighbours:
+            dist = norm3d(xyz)
+            d = descriptors[descid].derivative(dist)
+            for k in xrange(0, 3):
+                der[descid][k] += d * xyz[k] / dist 
+    return der
+"""
