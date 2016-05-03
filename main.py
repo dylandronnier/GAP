@@ -75,7 +75,7 @@ def visualize_sparsification(info, methodName='variance', full_db_mse=None):
 
   plt.show()
 
-def compare_sparsifications(infos, names, full_db_mse=None):
+def visulalize_sparsifications_comparison(infos, names, full_db_mse=None):
   extract = lambda field_name, info : np.array([ info[i][field_name] for i in sorted(info)])
 
   fig = plt.figure()
@@ -94,8 +94,21 @@ def compare_sparsifications(infos, names, full_db_mse=None):
   ax.legend(loc='best')
   plt.show()
 
+def cmp_with_random(info, methodName, start, step, iters, fulldb):
+    seeds = [1, 5, 184]
+    random_infos = []
+    for seed in seeds:
+      r_info = random_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, lmbd=1e-12, sigma=1.2, startPoints=start, stepPoints=step, max_iter=iters, seed=seed)
+      random_infos.append(r_info)
+    
+    infos = [info] + random_infos
+    names = [methodName] + ['Random %d' % s for s in seeds]
+
+    visulalize_sparsifications_comparison(infos, names, full_db_mse=fulldb)
+
 if __name__=='__main__':
     # For reproducible results
+    np.random.seed(1)
     random.seed(1)
 
     learn_database='BdDFluideLJ_onerho_2000'
