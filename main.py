@@ -137,23 +137,6 @@ def test_GAP_translated(learn_cfs, test_cfs, lmbd=1e-12, sigma=1.2, log=printer)
     return stat, gap
     #  =========== potentiel predicition ==============
     
-    #  =========== force predicition ==============
-    
-    # TODO: debug force prediction because now it is too imprecise.
-    # NOTE: maybe the same imprecision happens in original C++ code, i am not sure
-
-    """	
-    predicted_forces = np.array([ GAP.predict_force_by_cf_and_desc(test_cfs[i], d) for i, d in enumerate(t_desc)])
-    npier = lambda tuple_list: [ np.array(e) for e in tuple_list]
-    pFx, pFy, pFz = npier(zip(*predicted_forces))
-	
-    real_forces = [ force_label(cf) for cf in test_cfs]
-    rFx, rFy, rFz = npier(zip(*real_forces))
-    
-    prediction_stat(pFx, rFx, title="Comparison of Fx prediction:")	
-    """
-    #  =========== force predicition ==============
-
 def select_n_cfs(cfs, n):
     total = len(cfs)
     assert n < total

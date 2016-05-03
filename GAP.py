@@ -41,14 +41,6 @@ class GAP(object):
         """ Approximation of the potential after learning step """
         return cf_potentiel(cf_desc, self.alpha, self.train_data, self.c)
 	
-    #def predict_force_by_cf_and_desc(self, cf, cf_desc):
-    #    """ Force prediction """
-    #    derivs = derivatives(cf['n_data'], self.descriptizers)
-    #    return self.__compute_force(cf_desc, derivs) 
-	
-    #def __compute_force(self, cf_desc, cf_derivatives):
-    #    return cf_forces(cf_derivatives, cf_desc, self.alpha, self.train_data, self.c)	
-
     def compute_variance(self, cf_desc):
         """ uncertainty of the prediction """
         return cf_variance(cf_desc, self.Cinv, self.train_data, self.c, self.lambdac)
@@ -90,48 +82,3 @@ def Kmat(descriptors, c):
         for j in xrange(0, n):
             K[i][j] = Kernel(descriptors[i], descriptors[j], c)
     return K
-
-
-"""
-@numba.jit(nopython=True)
-def cf_forces(cf_derivs, test_configuration_desc, alpha, train_cfs_descriptors, c):	 
-   n = len(alpha) # number of train points
-   m = cf_derivs.shape[0] # number of descriptors
-        
-    assert train_cfs_descriptors.shape[0] == n
-    assert train_cfs_descriptors.shape[1] == m
-
-    corr = Kx_xi(test_configuration_desc, train_cfs_descriptors, c) 
-	
-    derivees = np.zeros(3)
-
-    for k in xrange(0, 3):
-        for i in xrange(0, n):
-            v = 0.0
-            for p in xrange(0, m):
-                v += -(test_configuration_desc[p] - train_cfs_descriptors[i][p]) * cf_derivs[p][k]		
-                derivees[k] += alpha[i] * corr[i] * v
-
-            derivees[k] *= 2 * c
-  
-    return derivees
-"""
-
-"""
-@numba.autojit()
-def derivatives(configuration_centered_neighbours, descriptors):
-    assert configuration_centered_neighbours.shape[1] == 3
-    
-    neighbours = configuration_centered_neighbours.shape[0]
-    n_descriptors = len(descriptors)
-	
-    der = np.zeros( (n_descriptors, 3 ))
-
-    for descid in xrange(0, n_descriptors):
-        for xyz in configuration_centered_neighbours:
-            dist = norm3d(xyz)
-            d = descriptors[descid].derivative(dist)
-            for k in xrange(0, 3):
-                der[descid][k] += d * xyz[k] / dist 
-    return der
-"""
