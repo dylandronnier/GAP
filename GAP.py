@@ -1,5 +1,6 @@
 import numpy as np 
 import numba
+
 from fastmath import inner_product, norm3d
 
 def default_printer(s):
@@ -45,7 +46,7 @@ class GAP(object):
         """ uncertainty of the prediction """
         return cf_variance(cf_desc, self.Cinv, self.train_data, self.c, self.lambdac)
 		
-#@numba.jit(nopython=True)
+@numba.autojit()
 def cf_variance(test_configuration_desc, Cinv, train_cfs_descriptors, c, lambdac):
     v = 1.0 + len(train_cfs_descriptors) * lambdac 
     kx = Kx_xi(test_configuration_desc, train_cfs_descriptors, c)
@@ -56,8 +57,7 @@ def cf_variance(test_configuration_desc, Cinv, train_cfs_descriptors, c, lambdac
 
 @numba.jit(nopython=True)
 def Kernel(x, y, c):
-    v =  np.exp( - c * inner_product(x - y, x - y))
-    return v
+    return np.exp( - c * inner_product(x - y, x - y))
 
 @numba.jit(nopython=True)
 def Kx_xi(predict_descriptor, train_descriptors, c):
