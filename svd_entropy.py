@@ -1,9 +1,6 @@
 #%%
 import numpy as np
 
-
-
-
 # For a matrix A, we compute the contribution of every feature using SVD entropy
 # E(X)=-1/log(N)*sum(Vj*log(Vj)) with Vj normalized singular values of X
 # CE = E_X-E(X), E_X vector of E(X_i) : X_i = X\{X_i}
@@ -78,6 +75,8 @@ def featureSelection(X,method,r0=1):
     else:
         print("Wrong method argument : try partition,SR,FS1,FS2 or BR")
 
-A=np.random.random((2000,5))
+
+if __name__=='__main__':
+    A = np.random.random((2000,5))
 
       
