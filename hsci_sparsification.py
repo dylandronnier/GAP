@@ -13,7 +13,8 @@ def HSCI(x, y, k, l):
     return float(KL.trace() + reduce(np.dot, [ii.T, K, ii, ii.T, L, ii])/(m-1)/(m-2) - 2 * ii.T.dot(KL).dot(ii)/(m-2))/(m-3)/m
 
 
-def sparsify(learn_cfs, test_cfs, max_iter=50, stepPoints =1, limit=None):
+def pseudo_random_sparsify(learn_cfs, test_cfs, max_iter=50, prob=0.75, limit=200):
+    """ Naive sparsification with Hilbert-Schmidt indepedance criteria """
     sink = lambda s : ''
     
     descriptizers = build_descriptizers()
@@ -27,8 +28,12 @@ def sparsify(learn_cfs, test_cfs, max_iter=50, stepPoints =1, limit=None):
     l = learn_cfs
     descs = l_desc
     lbl = l_labels
-    
+    """
     #print descs.shape[0], lbl.shape[0]
-    for i in range(2000):
-        b = np.array([j != i for j in range(2000)])
-        print HSCI(descs[b], lbl[b], lambda xi, xj : np.exp(-np.dot(xj-xi, xj-xi)), lambda yi, yj :  np.exp(-np.dot(yj-yi, yj-yi)))
+    var = 
+    selection =
+    while(dataselected):
+        for i in range(2000):
+            b = np.array([j != i for j in range(2000)])
+            print HSCI(descs[b], lbl[b], lambda xi, xj : np.exp(-np.dot(xj-xi, xj-xi)), lambda yi, yj :  np.exp(-np.dot(yj-yi, yj-yi)))
+    """
