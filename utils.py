@@ -9,6 +9,9 @@ import descriptor_utils
 def default_printer(s):
     print s
 
+def empty_printer(s):
+    pass
+
 def descript_cfs(configurations, descriptizers, log=default_printer):
     log ('  build descriptors')
     tic = time.clock()

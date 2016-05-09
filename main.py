@@ -8,8 +8,10 @@ import parser
 
 import variance_sparsification  
 import random_sparsification  
+import cur_sparsification
 
 import descriptor_utils
+
 
 def build_descriptizers():
     # see g1_*, g2_* and g4_*  and SymmetricFunctionsAtoms.cpp for details
@@ -38,7 +40,7 @@ def configurationRescaler(configuration):
              'n_data'  : np.array( [ r * 1e10 - n_coords for r in configuration['n_data']]) }
 
 def visualize_sparsification(info, methodName='variance', full_db_mse=None):
-  assert methodName in ['variance', 'random']
+  assert methodName in ['variance', 'random', 'cur']
 
   fig = plt.figure()
 
@@ -50,7 +52,10 @@ def visualize_sparsification(info, methodName='variance', full_db_mse=None):
   elif methodName == 'random':
     ax = fig.add_subplot(111)
     ax.set_title('Random sparsification')
-  
+  elif methodName == 'cur':
+    ax = fig.add_subplot(111)
+    ax.set_title('CUR sparsification')
+
   ax.set_xlabel('Database size')
   ax.set_ylabel('MSE')
   
@@ -75,7 +80,7 @@ def visualize_sparsification(info, methodName='variance', full_db_mse=None):
 
   plt.show()
 
-def compare_sparsifications(infos, names, full_db_mse=None):
+def visulalize_sparsifications_comparison(infos, names, full_db_mse=None):
   extract = lambda field_name, info : np.array([ info[i][field_name] for i in sorted(info)])
 
   fig = plt.figure()
@@ -94,8 +99,21 @@ def compare_sparsifications(infos, names, full_db_mse=None):
   ax.legend(loc='best')
   plt.show()
 
+def cmp_with_random(info, methodName, start, step, iters, fulldb):
+    seeds = [1, 5, 184]
+    random_infos = []
+    for seed in seeds:
+      r_info = random_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, lmbd=1e-12, sigma=1.2, startPoints=start, stepPoints=step, max_iter=iters, seed=seed)
+      random_infos.append(r_info)
+    
+    infos = [info] + random_infos
+    names = [methodName] + ['Random %d' % s for s in seeds]
+
+    visulalize_sparsifications_comparison(infos, names, full_db_mse=fulldb)
+
 if __name__=='__main__':
     # For reproducible results
+    np.random.seed(1)
     random.seed(1)
 
     learn_database='BdDFluideLJ_onerho_2000'
@@ -110,15 +128,33 @@ if __name__=='__main__':
     descriptizers = build_descriptizers()
     full_db_mse = utils.GAP_predict(learn_cfs, test_cfs, descriptizers, lmbd=1e-12, sigma=1.2)[0]['diff_mse']
     
-    v_info = variance_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, max_iter=100, startPoints=5, stepPoints = 1)	
+    # =============== bottom-top ==========
+    start = 5
+    step_up = 1
+    iters_up = 10
 
-    seeds = [1, 2, 3]
-    random_infos = []
-    for seed in seeds:
-      info = random_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, lmbd=1e-12, sigma=1.2, startPoints=6, stepPoints=1, max_iter=100, seed=seed)
-      random_infos.append(info)
+    # =============== top-down ==========
+    max_pts = 2000
+    step_down = 50
+    iters_down = 39
+
+    # =============== CUR
+    epsilon = 0.01
+
+
+    """
+    # variance, bottom-top
+    v_info = variance_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, max_iter=iters_up, startPoints=start, stepPoints = step_up)	
+    cmp_with_random(v_info, 'variance', start, step_up, iters_up, full_db_mse)
+
+    # CUR base, cheaty bottom-top :)
+    points = np.arange(start, start + iters_up * step_up, step_up)
     
-    infos = [v_info] + random_infos
-    names = ['Variance'] + ['Random %d' % s for s in seeds]
-    
-    compare_sparsifications(infos, names, full_db_mse)
+    cur_info = cur_sparsification.sparsify_direct(learn_cfs, test_cfs, descriptizers, points, epsilon, seed=1)
+    cmp_with_random(cur_info, 'cur base', start, step_up, iters_up, full_db_mse)
+    """
+
+    # CUR, top-bottom
+    cur_info = cur_sparsification.sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
+    cmp_with_random(cur_info, 'cur top-bottom', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)
+
