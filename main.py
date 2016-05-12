@@ -9,6 +9,7 @@ import parser
 import variance_sparsification  
 import random_sparsification  
 import cur_sparsification
+import hsci_sparsification
 
 import descriptor_utils
 
@@ -40,64 +41,67 @@ def configurationRescaler(configuration):
              'n_data'  : np.array( [ r * 1e10 - n_coords for r in configuration['n_data']]) }
 
 def visualize_sparsification(info, methodName='variance', full_db_mse=None):
-  assert methodName in ['variance', 'random', 'cur']
+    assert methodName in ['variance', 'random', 'cur', 'hsci']
+    
+    fig = plt.figure()
 
-  fig = plt.figure()
+    extract = lambda field_name : [ info[i][field_name] for i in sorted(info)]    
 
-  extract = lambda field_name : [ info[i][field_name] for i in sorted(info)]    
-
-  if methodName == 'variance':
-    ax = fig.add_subplot(211)
-    ax.set_title('Variance sparsification')
-  elif methodName == 'random':
-    ax = fig.add_subplot(111)
-    ax.set_title('Random sparsification')
-  elif methodName == 'cur':
-    ax = fig.add_subplot(111)
-    ax.set_title('CUR sparsification')
-
-  ax.set_xlabel('Database size')
-  ax.set_ylabel('MSE')
-  
-  size = extract('size_db')
-  mse = extract('mse')
-
-  ax.semilogy(size, mse)
-
-  if full_db_mse:
-    ax.axhline(y = full_db_mse, color = 'r')
-
-  if methodName == 'variance':
-    ax = fig.add_subplot(212)
-    mean_var = extract('mean_joined_variance')
-    ax.semilogy(size, mean_var)
-
-    joined = extract('n_joined_cfs')
-    assert np.all(np.array(joined) == joined[0])
+    if methodName == 'variance':
+        ax = fig.add_subplot(211)
+        ax.set_title('Variance sparsification')
+    elif methodName == 'random':
+        ax = fig.add_subplot(111)
+        ax.set_title('Random sparsification')
+    elif methodName == 'cur':
+        ax = fig.add_subplot(111)
+        ax.set_title('CUR sparsification')
+    elif methodName == 'hsci':
+        ax = fig.add_subplot(111)
+        ax.set_title('HSCI sparsification')
 
     ax.set_xlabel('Database size')
-    ax.set_ylabel('Mean variance of %d joined cfs' % joined[0])
+    ax.set_ylabel('MSE')
+  
+    size = extract('size_db')
+    mse = extract('mse')
 
-  plt.show()
+    ax.semilogy(size, mse)
+
+    if full_db_mse:
+        ax.axhline(y = full_db_mse, color = 'r')
+
+    if methodName == 'variance':
+        ax = fig.add_subplot(212)
+        mean_var = extract('mean_joined_variance')
+        ax.semilogy(size, mean_var)
+
+        joined = extract('n_joined_cfs')
+        assert np.all(np.array(joined) == joined[0])
+
+        ax.set_xlabel('Database size')
+        ax.set_ylabel('Mean variance of %d joined cfs' % joined[0])
+
+    plt.show()
 
 def visulalize_sparsifications_comparison(infos, names, full_db_mse=None):
-  extract = lambda field_name, info : np.array([ info[i][field_name] for i in sorted(info)])
+    extract = lambda field_name, info : np.array([ info[i][field_name] for i in sorted(info)])
 
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-  ax.set_xlabel('Database size')
-  ax.set_ylabel('MSE')
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('Database size')
+    ax.set_ylabel('MSE')
   
-  for info, name in zip(infos, names):
-    size = extract('size_db', info)
-    mse = extract('mse', info)
-    ax.semilogy(size, mse, label = name)
+    for info, name in zip(infos, names):
+        size = extract('size_db', info)
+        mse = extract('mse', info)
+        ax.semilogy(size, mse, label = name)
 
-  if full_db_mse:
-    ax.axhline(y = full_db_mse, color = 'r')
+    if full_db_mse:
+        ax.axhline(y = full_db_mse, color = 'r')
 
-  ax.legend(loc='best')
-  plt.show()
+    ax.legend(loc='best')
+    plt.show()
 
 def cmp_with_random(info, methodName, start, step, iters, fulldb):
     seeds = [1, 5, 184]
@@ -155,6 +159,9 @@ if __name__=='__main__':
     """
 
     # CUR, top-bottom
+    """
     cur_info = cur_sparsification.sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
     cmp_with_random(cur_info, 'cur top-bottom', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)
-
+    """
+    HSCI_info = hsci_sparsification.pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers)
+    cmp_with_random(HSCI_info, 'HSCI', 50, 200, 9, full_db_mse)
