@@ -163,5 +163,5 @@ if __name__=='__main__':
     cur_info = cur_sparsification.sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
     cmp_with_random(cur_info, 'cur top-bottom', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)
     """
-    HSCI_info = hsci_sparsification.pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers)
-    cmp_with_random(HSCI_info, 'HSCI', 50, 200, 9, full_db_mse)
+    HSCI_info = hsci_sparsification.sparsifyFOHSIC(learn_cfs, test_cfs, descriptizers)
+    cmp_with_random(HSCI_info, 'HSIC', 13, 6, 40, full_db_mse)
