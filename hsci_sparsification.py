@@ -1,5 +1,6 @@
 import numpy as np
 import utils
+import functools
 
 def HSCI(x, y, k, l):
     """ Compute HSCI(x, y) whith k which is the kernel of the input space
@@ -10,7 +11,7 @@ def HSCI(x, y, k, l):
     K = np.array([[k(x[i,:], x[j,:]) if i != j else 0. for i in range(m)] for j in range(m)])
     L =np.array([[l(y[i,:], y[j,:]) if i != j else 0. for i in range(m)] for j in range(m)])
     KL = np.dot(K, L)
-    return float(KL.trace() + reduce(np.dot, [ii.T, K, ii, ii.T, L, ii])/(m-1)/(m-2) - 2 * ii.T.dot(KL).dot(ii)/(m-2))/(m-3)/m
+    return float(KL.trace() + functools.reduce(np.dot, [ii.T, K, ii, ii.T, L, ii])/(m-1)/(m-2) - 2 * ii.T.dot(KL).dot(ii)/(m-2))/(m-3)/m
 
 
 def pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers,
@@ -32,7 +33,7 @@ def pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers,
         for i in range(max_iter):
             b = np.logical_and(np.random.binomial(1, prob, 2000), selection)
             var = HSCI(desc[b,:], lbl[b], kernel, kernel)
-            print var
+            print(var)
             if hs < var :
                 hs = var
                 subselection = b
@@ -40,7 +41,7 @@ def pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers,
         lcfs = list( learn_cfs[i] for i in selection.nonzero()[0] )
         mse = utils.GAP_predict(lcfs, test_cfs, descriptizers, 
                                 log=utils.empty_printer)[0]['diff_mse']
-        print 'Iterations %d : Taille de la selection : %d ; HSCI = %e ; mse = %e' % (iterations, selection.sum(), hs, mse)
+        print('Iterations %d : Taille de la selection : %d ; HSCI = %e ; mse = %e' % (iterations, selection.sum(), hs, mse))
 
         spars_info[iterations] = {
             'size_db' : selection.sum(),
@@ -68,7 +69,7 @@ def pseudo_random_sparsify2(learn_cfs, test_cfs, descriptizers,
         for i in range(max_iter):
             b = np.logical_and(np.random.binomial(1, prob, 2000), selection)
             var = HSCI(desc[b,:], lbl[b], kernel, kernel)
-            print var
+            print(var)
             if hs < var :
                 hs = var
                 subselection = b
@@ -76,7 +77,7 @@ def pseudo_random_sparsify2(learn_cfs, test_cfs, descriptizers,
         lcfs = list( learn_cfs[i] for i in selection.nonzero()[0] )
         mse = utils.GAP_predict(lcfs, test_cfs, descriptizers, 
                                 log=utils.empty_printer)[0]['diff_mse']
-        print 'Iterations %d : Taille de la selection : %d ; HSCI = %e ; mse = %e' % (iterations, selection.sum(), hs, mse)
+        print('Iterations %d : Taille de la selection : %d ; HSCI = %e ; mse = %e' % (iterations, selection.sum(), hs, mse))
 
         spars_info[iterations] = {
             'size_db' : selection.sum(),
@@ -91,6 +92,6 @@ if __name__=='__main__':
     x = np.ones((200,8))
     y = np.zeros((200,1))
     k = lambda xi, xj : np.exp(-np.dot(xj-xi, xj-xi))
-    print HSCI(x, y, k, k)
+    print(HSCI(x, y, k, k))
                 
     

@@ -1,17 +1,17 @@
 import numpy as np
 
 def loadDatabase(databaseName, rescaleFunction=None, first=None):
-	print 'Loading %s database' % (databaseName)
+	print('Loading %s database' % (databaseName))
 	all_config = [a for a in parseDatabase(databaseName)]
 	head = first if first else len(all_config)
 	
-	print ' Total configurations = %d' % len(all_config)
-	print ' Getting first %d' % head 
+	print(' Total configurations = %d' % len(all_config))
+	print(' Getting first %d' % head )
 
 	data = [ a for a in all_config[0:head]]
 	
 	if rescaleFunction:
-		print '   rescaling it '
+		print('   rescaling it ')
 		return [ rescaleFunction(a) for a in data]
 	return data
 
@@ -26,7 +26,7 @@ def parseLine(line):
 
 	assert (len(data) % 3) == 0
 	
-	n_data = np.array( [np.array(data[i: i+3]) for i in xrange(0, len(data), 3)])
+	n_data = np.array( [np.array(data[i: i+3]) for i in range(0, len(data), 3)])
 	
 	atom_description =  {
 		'coord'   : np.array([x, y, z]),

@@ -9,7 +9,7 @@ def descript_configuration(configuration, descriptizers):
 	n_desc = len(descriptizers)
 	config_desc = np.zeros(n_desc)
 
-	for i in xrange(0, n_desc):
+	for i in range(0, n_desc):
 		assert isinstance(descriptizers[i], RadialDescriptizer)
 		config_desc[i] =  np.sum(descriptizers[i].f_vectorized(dists))
 		
@@ -19,7 +19,7 @@ def descript_configuration(configuration, descriptizers):
 def __dist_compute(points3d):
 	n = points3d.shape[0]
 	r = np.zeros(n)
-	for i in xrange(0, n):
+	for i in range(0, n):
 		r[i] = norm3d(points3d[i])
 	return r
 	
@@ -69,7 +69,7 @@ def cutoff(cutOffDist, r):
 def cutoff_derivative(cutOffDist, r):
 	if r < cutOffDist:
 	 	return -0.5 * (np.pi / cutOffDist) * np.sin(np.pi * r / cutOffDist)
-  	else:
+	else:
   		return 0.0
 
 @numba.vectorize(['float64(float64, float64, float64, float64)'], nopython=True)

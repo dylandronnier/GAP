@@ -16,7 +16,7 @@ def column_select_indexes(A, k, epsilon):
 	V = V.T
 
 	n = A.shape[1]
-	pi = np.array([np.mean(V[0:k, j] ** 2) for j in xrange(0, n)])
+	pi = np.array([np.mean(V[0:k, j] ** 2) for j in range(0, n)])
 	assert np.abs(np.sum(pi) - 1.0) < 1e-8
 	c = float(k) 
 	probabilities = np.minimum(np.ones(n), c * pi)
@@ -28,8 +28,9 @@ def column_select_indexes(A, k, epsilon):
 		if len(indexes) >= k:
 			break
 
-	indexes = zip(*sorted([ (i, pi[i]) for i in indexes], key=lambda v : v[1], reverse=True))[0][0:k]
+	indexes = list(zip(*sorted([ (i, pi[i]) for i in indexes], key=lambda v : v[1], reverse=True)))[0][0:k]
 	assert len(indexes) == k
+	print(len(indexes))
 	return indexes
 
 #learn_cfs ios always used a reference for sparsification
@@ -48,7 +49,7 @@ def sparsify_direct(learn_cfs, test_cfs, descriptizers, n_points, epsilon, lmbd=
 		assert len(l) == npts
 
 		mse = utils.GAP_predict(l, test_cfs, descriptizers, log=utils.empty_printer)[0]['diff_mse']
-		print 'CUR %d:  mse = %e' % (npts, mse)
+		print('CUR %d:  mse = %e' % (npts, mse))
 
 		spars_info[iteration] = {
 				'size_db' : npts,
@@ -73,7 +74,7 @@ def sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints, stepPoi
 		database = [ learn_cfs[i] for i in column_select_indexes(descriptors_matrix_transposed, startPoints - stepPoints * iteration, epsilon)]
 		mse = utils.GAP_predict(database, test_cfs, descriptizers, log=utils.empty_printer)[0]['diff_mse']
 		
-		print 'CUR top-bottom %d: mse =%e' % (len(database), mse)
+		print('CUR top-bottom %d: mse =%e' % (len(database), mse))
 		
 		spars_info[iteration] = {
 				'size_db' : len(database),

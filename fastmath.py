@@ -14,6 +14,6 @@ def inner_product(v1, v2):
     n = len(v1)
     assert n == len(v2)
     r = 0.0
-    for i in xrange(0, n):
+    for i in range(0, n):
         r += v1[i] * v2[i]
     return r

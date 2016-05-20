@@ -10,6 +10,7 @@ import variance_sparsification
 import random_sparsification  
 import cur_sparsification
 import hsci_sparsification
+import svde_sparsification
 
 import descriptor_utils
 
@@ -150,7 +151,8 @@ if __name__=='__main__':
     # variance, bottom-top
     v_info = variance_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, max_iter=iters_up, startPoints=start, stepPoints = step_up)	
     cmp_with_random(v_info, 'variance', start, step_up, iters_up, full_db_mse)
-
+    """
+    """
     # CUR base, cheaty bottom-top :)
     points = np.arange(start, start + iters_up * step_up, step_up)
     
@@ -163,5 +165,10 @@ if __name__=='__main__':
     cur_info = cur_sparsification.sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
     cmp_with_random(cur_info, 'cur top-bottom', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)
     """
+    """
     HSCI_info = hsci_sparsification.pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers)
     cmp_with_random(HSCI_info, 'HSCI', 50, 200, 9, full_db_mse)
+    """
+
+    svde_info = svde_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
+    cmp_with_random(svde_info, 'svde simple', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)

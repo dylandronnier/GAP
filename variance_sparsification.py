@@ -28,7 +28,7 @@ def sparsify(learn_cfs, test_cfs, descriptizers, max_iter=50, startPoints = 5, s
         s, cur_gap_instance = utils.GAP_predict(l, test_cfs, descriptizers, log=sink)
         mse = s['diff_mse']
 
-        print 'Join %d cfs with mean variance = %e, mse = %e ' % (len(joined_cfs), mean_joined_variance, mse)  
+        print('Join %d cfs with mean variance = %e, mse = %e ' % (len(joined_cfs), mean_joined_variance, mse))
         
         # Note: 
         #   size_db = old + n_joined

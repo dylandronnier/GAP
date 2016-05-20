@@ -7,7 +7,7 @@ from GAP import GAP
 import descriptor_utils
 
 def default_printer(s):
-    print s
+    print(s)
 
 def empty_printer(s):
     pass

@@ -4,7 +4,7 @@ import numba
 from fastmath import inner_product, norm3d
 
 def default_printer(s):
-    print s
+    print(s)
 
 class GAP(object):
     """ Gaussian Approximation Potential """
@@ -64,7 +64,7 @@ def Kx_xi(predict_descriptor, train_descriptors, c):
     n = len(train_descriptors)
     r = np.zeros(n)
     
-    for i in xrange(0, n):
+    for i in range(0, n):
         r[i] = Kernel(predict_descriptor, train_descriptors[i], c)
     return r
 
@@ -78,7 +78,7 @@ def Kmat(descriptors, c):
     n = len(descriptors)
     K = np.zeros( (n, n))
 
-    for i in xrange(0, n):
-        for j in xrange(0, n):
+    for i in range(0, n):
+        for j in range(0, n):
             K[i][j] = Kernel(descriptors[i], descriptors[j], c)
     return K

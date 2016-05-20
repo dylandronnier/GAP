@@ -1,82 +1,111 @@
-#%%
+import matplotlib.pyplot as plt
+
 import numpy as np
+import random
 
-# For a matrix A, we compute the contribution of every feature using SVD entropy
-# E(X)=-1/log(N)*sum(Vj*log(Vj)) with Vj normalized singular values of X
-# CE = E_X-E(X), E_X vector of E(X_i) : X_i = X\{X_i}
+import utils 
+import parser 
 
-def entropy(X):
-    N=X.shape[0]    
-    s=np.linalg.svd(X,compute_uv=False)
-    v=s**2
-    v=v/np.mean(v)
-    E_x=-(1/np.log(N))*np.sum(v*np.log(v))
-    return E_x
+import variance_sparsification  
+import random_sparsification  
+import cur_sparsification
+import hsci_sparsification
 
-def featureContribution(X):
-    (N,d)=X.shape
-    E_x=entropy(X)
-    E=np.zeros(d)
-    for i in np.arange(d):
-        Xi=np.delete(X,i,1)
-        E[i]=entropy(Xi)
-    return E_x-E
+def svd_entropy(X):
+	rX = np.linalg.matrix_rank(X)
+	ss = np.linalg.svd(X, compute_uv=False)
+	s2s = ss**2
+	vs = s2s / sum(s2s)
+	eX = - sum(vs * np.log2(vs)) / np.log2(rX) # log10, log
+	return eX
 
-# Select the most interesting features :
-def featureSelection(X,method,r0=1):
-# - X : data matrix
-# - method : see SVD paper sent by Sami, page 123-124
-# "partition" : first method, page 123
-# "SR","FS1","FS2","BE" : other methods, page 124
-    if method=="partition":
-        CE=featureContribution(X)
-        c=np.mean(CE)
-        s=np.std(CE)
-        high_contribution=X[:,CE>c+s]
-        low_contribution=X[:,CE<c-s]
-        average_contribution=X[:,~((CE>c+s) | (CE<c-s))]
-        return (high_contribution,average_contribution,low_contribution)
-    elif method=="SR":
-        CE=featureContribution(X)
-        featuresSelected=np.argsort(CE)
-        X=X[:,featuresSelected]
-        return X[:,-r0]
-    elif method=="FS1":
-        #initialisation : we chose the feature with highest CE
-        (N,d)=X.shape
-        CE=featureContribution(X)
-        featuresSelected=np.zeros(d,dtype=bool)
-        featuresSelected[np.argmax(CE)]=True
-        # loop
-        for i in np.arange(1,r0):
-            featuresNotSelected=np.where(featuresSelected==0)
-            entropies=np.zeros(N-i)
-            for j in featuresNotSelected:
-                featuresSelected[j]=True
-                entropies[j]=entropy(X[:,featuresSelected])
-                featuresSelected[j]=False
-            featuresSelected[np.argmax(entropies)]=True
-        return X[:,featuresSelected]
-    elif method=="FS2":
-        N=X.shape[0]
-        newX=np.zeros((N,r0))        
-        for i in np.arange(r0): 
-           CE=featureContribution(X)
-           maxFeature=np.argmax(CE)
-           X=np.delete(X,maxFeature,1)
-           newX[:,i]=X[:,i]
-        return X
-    elif method=="BE":
-       for i in np.arange(r0):
-           CE=featureContribution(X)
-           minFeature=np.argmin(CE)
-           X=np.delete(X,minFeature,1)
-       return X
-    else:
-        print("Wrong method argument : try partition,SR,FS1,FS2 or BR")
+def comp_each_fc(X, i):
+	tX = np.delete(X, i, 1)
+	cei = svd_entropy(X) - svd_entropy(tX)
+	return cei
 
+def comp_list_fc(X, cs):
+	tX = np.delete(X, columnlist, 1)
+	ce = svd_entropy(X) - svd_entropy(tX)
+	return ce
+
+def comp_fc(X):
+	n = X.shape[1]
+	ces = [comp_each_fc(X, i) for i in range(n)]
+	ces = np.array(ces)
+	return ces
+
+def SVD_CS(X, method='SR', r0=None):
+	
+	(m, n) = X.shape
+	ces = comp_fc(X)
+	c = np.mean(ces)
+	s = np.std(ces)
+	tr0 = sum([1 for i in range(n) if ces[i] > c + s])
+	if r0 is None:
+		r0 = tr0
+	hcvs = [(i, ces[i]) for i in range(n)]
+	hcvs = sorted(hcvs, key=lambda x:x[1], reverse=True)
+	hcs = [hcvs[i][0] for i in range(n)]
+	rX = np.delete(X, ds, 1)
+	rX = []
+
+	return rX, hcvs, tr0
+
+def SVD_FS(X, method='SR', r0=None):
+	
+	(m, n) = X.shape
+	ces = comp_fc(X)
+	c = np.mean(ces)
+	s = np.std(ces)
+	tr0 = sum([1 for i in range(n) if ces[i] > c + s])
+	if r0 is None:
+		r0 = tr0
+
+	rindex = []
+	# rX = []
+
+	if method == 'SR':
+		hcvs = [(i, ces[i]) for i in range(n)]
+		hcvs = sorted(hcvs, key=lambda x:x[1], reverse=True)
+		hcs = [hcvs[i][0] for i in range(n)]
+		rindex = hcs[0:r0]
+		# ds = hcs[r0:len(hcs)]
+		# rX = np.delete(X, ds, 1)
+
+	elif method == 'FS1':
+		print("to be implemented")
+
+	elif method == 'FS2':
+		tX = np.array(X)
+		# rX = tX[:, np.argmax(ces)].reshape((m, 1))
+		tX = np.delete(tX, np.argmax(ces), 1)
+		while tX.shape[1] < r0:
+			tces = comp_fc(tX)
+			rX = np.c_[rX, tX[:, np.argmax(tces)]]
+			tX = np.delete(tX, np.argmax(tces), 1)
+
+	elif method == 'BE':
+		rX = np.array(X)
+		while rX.shape[1] > r0:
+			tces = comp_fc(rX)
+			rX = np.delete(rX, np.argmin(tces), 1)
+
+	else:
+		print("to be implemented")
+
+	# return rX, hcvs, tr0
+	return rindex
 
 if __name__=='__main__':
-    A = np.random.random((2000,5))
+
+	np.random.seed(1)
+	A = np.random.random((100,100))
+	print(A.shape)
+	B, hcvs, tr0 = SVD_FS(A, method='SR', r0=10)
+	print(B.shape)
+	print(hcvs)
+	print(tr0)
+
 
       
