@@ -58,7 +58,6 @@ def sparsify_direct(learn_cfs, test_cfs, descriptizers, n_points, epsilon, lmbd=
 
 	return spars_info
 
-
 # at each step we sparsify shrinked database 
 def sparsify_top_bottom(learn_cfs, test_cfs, descriptizers, startPoints, stepPoints, max_iterations, epsilon, lmbd=1e-12, sigma=1.2, seed=1):
 	np.random.seed(seed)

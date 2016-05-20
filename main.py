@@ -134,14 +134,14 @@ if __name__=='__main__':
     full_db_mse = utils.GAP_predict(learn_cfs, test_cfs, descriptizers, lmbd=1e-12, sigma=1.2)[0]['diff_mse']
     
     # =============== bottom-top ==========
-    start = 5
+    start = 264
     step_up = 1
-    iters_up = 10
+    iters_up = 1
 
     # =============== top-down ==========
-    max_pts = 2000
-    step_down = 50
-    iters_down = 39
+    max_pts = 10
+    step_down = 1
+    iters_down = 3
 
     # =============== CUR
     epsilon = 0.01
@@ -169,6 +169,18 @@ if __name__=='__main__':
     HSCI_info = hsci_sparsification.pseudo_random_sparsify(learn_cfs, test_cfs, descriptizers)
     cmp_with_random(HSCI_info, 'HSCI', 50, 200, 9, full_db_mse)
     """
-
-    svde_info = svde_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
+    """
+    svde_info = svde_sparsification.sparsify_direct(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
     cmp_with_random(svde_info, 'svde simple', max_pts - (iters_down -1 ) * step_down, step_down, iters_down, full_db_mse)
+    """
+
+    points = np.arange(start, start + iters_up * step_up, step_up)
+    
+    svde_info = svde_sparsification.sparsify_direct(learn_cfs, test_cfs, descriptizers, points, epsilon, seed=1)
+    # svde_info = svde_sparsification.sparsify(learn_cfs, test_cfs, descriptizers, startPoints=max_pts, stepPoints=step_down, max_iterations=iters_down, epsilon=epsilon, lmbd=1e-12, sigma=1.2, seed=1)
+    cmp_with_random(svde_info, 'SVD-E simple ranking', start, step_up, iters_up, full_db_mse)
+
+
+
+
+
